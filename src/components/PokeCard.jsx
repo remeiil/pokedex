@@ -10,13 +10,15 @@ export default function PokeCard(props) {
     const [skill, setSkill] = useState(null)
     const [loadingSkill, setLoadingSkill] = useState(false)
 
-    const {name, height, abilities, stats, types, moves, sprites} = data || {}
-
+    const {name, height, weight, stats, types, moves, sprites} = data || {}
+    
     const imgList = Object.keys(sprites || {}).filter(val => {
         if (!sprites[val]) { return false }
         if (['versions','other'].includes(val)) { return false }
         return true
     })
+
+    
 
     async function fetchMoveData(move, moveUrl) {
         if (loadingSkill || !localStorage || !moveUrl) { return } 
@@ -107,6 +109,16 @@ export default function PokeCard(props) {
             </div>
         )
     }
+    let sortedMoves = moves.sort((valueA , valueB) => (valueA.move?.name > valueB.move?.name) ? 1 : (valueA.move?.name < valueB.move?.name) ? -1 : 0 )
+    let pokemonMoves = sortedMoves.map((moveObj, moveIndex) => {
+        return (
+            <button className="button-card pokemon-move" key={moveIndex} onClick={() => {
+                fetchMoveData(moveObj?.move?.name, moveObj?.move?.url)
+            }}>
+                <p>{moveObj?.move?.name.replaceAll('-', ' ')}</p>
+            </button>
+        )
+    })
 
     return (
         <div className="poke-card">
@@ -124,7 +136,7 @@ export default function PokeCard(props) {
             )}
             <div>
                 <h4>#{getFullPokedexNumber(selectedPokemon)}</h4>
-                <h2>{name}</h2>
+                <h2>{name.charAt(0).toUpperCase() + name.slice(1)}</h2>
             </div>
         
             <div className="type-container">
@@ -145,6 +157,15 @@ export default function PokeCard(props) {
             </div>
             <h3>Stats</h3>
             <div className="stats-card">
+                <div className="stat-item">
+                    <p>Height</p>
+                    <h4>{height * 10}cm</h4>
+                </div>
+                <div className="stat-item">
+                    <p>Weight</p>
+                    <h4>{weight / 10}kg</h4>
+                </div>
+                
                 {stats.map((statsObj, statIndex) => {
                     const { stat, base_stat } = statsObj
                     return (
@@ -157,15 +178,7 @@ export default function PokeCard(props) {
             </div>
             <h3>Moves</h3>
             <div className="pokemon-move-grid">
-                {moves.map((moveObj, moveIndex) => {
-                    return (
-                        <button className="button-card pokemon-move" key={moveIndex} onClick={() => {
-                            fetchMoveData(moveObj?.move?.name, moveObj?.move?.url)
-                        }}>
-                            <p>{moveObj?.move?.name.replaceAll('-', ' ')}</p>
-                        </button>
-                    )
-                })}
+                {pokemonMoves}
             </div>
         </div>
     )
